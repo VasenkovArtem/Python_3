@@ -3,7 +3,7 @@ import json
 
 
 def check_example(str_object: str, attributes: list, values: list,
-                  error: bool, color_code: int, color: str):
+                  error: bool, color_code: int, color: str) -> bool:
     json_object = json.loads(str_object)
     try:
         adv = Advert(json_object)
