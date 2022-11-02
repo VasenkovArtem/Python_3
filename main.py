@@ -14,11 +14,11 @@ class JSONToPythonWithAttributes:
             attr_name = i + '_' * iskeyword(i)
             value = json_object[i]
             if i not in excluded_attributes:
-                if type(json_object[i]) == dict:
-                    self.__dict__[attr_name] =\
-                        JSONToPythonWithAttributes(value, [])
+                if isinstance(json_object[i], dict):
+                    setattr(self, attr_name,
+                            JSONToPythonWithAttributes(value, []))
                 else:
-                    self.__dict__[attr_name] = value
+                    setattr(self, attr_name, value)
 
 
 class ColorizeMixin:
@@ -27,7 +27,7 @@ class ColorizeMixin:
     is determined by the repr_color_code attribute.
     Specifies a string representation to display to users"""
     def __str__(self):
-        return '\033[0;' + str(self.repr_color_code) + 'm' + self.__repr__()
+        return f'\033[0;{str(self.repr_color_code)}m{repr(self)}'
 
 
 class Advert(ColorizeMixin, JSONToPythonWithAttributes):
@@ -40,23 +40,22 @@ class Advert(ColorizeMixin, JSONToPythonWithAttributes):
     def __init__(self, json_object: dict):
         super().__init__(json_object, ['price'])
         # 'title' is a required attribute
-        assert 'title' in self.__dict__, "There is no title in adding advert"
+        assert hasattr(self, 'title'), "There is no title in adding advert"
         if 'price' in json_object:
-            self.price = json_object['price']
+            price = json_object['price']
+        else:
+            price = 0
+        self.price = price
 
     @property
     def price(self) -> float:
-        if '_price' not in self.__dict__:
-            self._price = 0
-            return self._price
-        else:
-            return self._price
+        return getattr(self, '_price')
 
     @price.setter
     def price(self, value: float):
         if value < 0:
             raise ValueError('price must be >= 0')
-        self._price = value
+        setattr(self, '_price', value)
 
     def __repr__(self) -> str:
         return f'{self.title} | {self.price} ₽'
